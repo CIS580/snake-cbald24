@@ -6,7 +6,7 @@ backBuffer.width = frontBuffer.width;
 backBuffer.height = frontBuffer.height;
 var backCtx = backBuffer.getContext('2d');
 var oldTime = performance.now();
-
+//hello
 /**
  * @function loop
  * The main game loop.
