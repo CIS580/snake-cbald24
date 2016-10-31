@@ -20,6 +20,12 @@ var temp2 = new Piece({x: temp1.position.x + 10, y: temp1.position.y}, false, "l
 snake.push(temp1);
 snake.push(temp2);
 var move = false;
+var gameOver = false;
+var score = 0;
+var obstacle = new Obsticle({x: 100, y: 100});
+var apple = new Apple({x: head.position.x - 100, y: head.position.y});
+var apple2 = new Apple({x: head.position.x - 200, y: head.position.y});
+var apple3 = new Apple({x: getRandomInt(5,755), y: getRandomInt(5, 475)});
 var input = {
   left: false,
   right: false,
@@ -98,6 +104,14 @@ function update(elapsedTime) {
   }
   head.update();
   moveTimer--;
+  checkCollisionApple(head, apple);
+  checkCollisionApple(head, apple2);
+  checkCollisionApple(head, apple3);
+  if(head.position.x < 0 || head.position.x + 10 > 760 || head.position.y < 0 || head.position.y + 10 > 480)
+  {
+    gameOver = true;
+  }
+  checkObs(head, obstacle);
   // TODO: Spawn an apple periodically
   // TODO: Grow the snake periodically
   // TODO: Move the snake
@@ -115,7 +129,14 @@ function update(elapsedTime) {
   * the number of milliseconds passed since the last frame.
   */
 function render(elapsedTime) {
-  backCtx.clearRect(0, 0, backBuffer.width, backBuffer.height);
+  if (gameOver)
+  {
+    backCtx.fillStyle = "white";
+    backCtx.font = "100px Arial";
+    backCtx.fillText("GAME OVER", 100, 480/2);
+  }
+  else{
+    backCtx.clearRect(0, 0, backBuffer.width, backBuffer.height);
   backCtx.fillStyle = "black";
   backCtx.fillRect(0, 0, 760, 480);
   // TODO: Draw the game objects into the backBuffer
@@ -123,6 +144,14 @@ function render(elapsedTime) {
   for(var i = 0; i < snake.length; i++)
   {
     snake[i].render(backCtx);
+  }
+  apple.render(backCtx);
+  apple2.render(backCtx);
+  apple3.render(backCtx);
+  obstacle.render(backCtx);
+  backCtx.fillStyle = "white";
+    backCtx.font = "10px Arial";
+    backCtx.fillText("Score: "+score, 7, 7);
   }
 }
 
@@ -245,4 +274,82 @@ Piece.prototype.render = function(ctx)
 {
     ctx.fillStyle = "green";
     ctx.fillRect(this.position.x, this.position.y, 10, 10);
+}
+
+function Apple(position)
+{
+  this.pos = { 
+    x: position.x,
+    y: position.y
+  };
+  this.height = 10;
+  this.width = 10;
+  this.sprite = new Image();
+  this.sprite.src = 'assets/apple.png';
+}
+
+Apple.prototype.render = function(ctx)
+{
+  ctx.drawImage(this.sprite, 0, 0, 735, 738, this.pos.x, this.pos.y, this.height, this.width);
+}
+
+function checkCollisionApple(head, apple)
+{
+  if(head.position.x +9 < apple.pos.x || head.position.x + 1 > apple.pos.x + apple.width || head.position.y + 9 < apple.pos.y || head.position.y + 1 > apple.pos.y + apple.height)
+  {
+    return false;
+  }
+  apple.pos.x = getRandomInt(5,755);
+  apple.pos.y = getRandomInt(5, 475);
+  growSnake();
+  score += 10;
+  return true; 
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function growSnake()
+{
+  var temp = snake[snake.length - 1];
+  switch(temp.direction)
+  {
+    case "up":
+    snake.push(new Piece({x: temp.position.x, y: temp.position.y + 10}, false, "up"));
+    break;
+    case "left":
+    snake.push(new Piece({x: temp.position.x + 10, y: temp.position.y}, false, "left"));
+    break;
+    case "right":
+    snake.push(new Piece({x: temp.position.x - 10, y: temp.position.y}, false, "right"));
+    break;
+    case "down":
+    snake.push(new Piece({x: temp.position.x, y: temp.position.y - 10}, false, "down"));
+    break;
+  }
+}
+
+function Obsticle(post)
+{
+  this.pos={
+    x: post.x,
+    y: post.y
+  };
+}
+
+Obsticle.prototype.render = function(ctx)
+{
+  ctx.fillStyle = "red";
+  ctx.fillRect(100, 100, 25, 25);
+}
+
+function checkObs(head, obs)
+{
+  if(head.position.x +9 < obs.pos.x || head.position.x + 1 > obs.pos.x + 25 || head.position.y + 9 < obs.pos.y || head.position.y + 1 > obs.pos.y + 25)
+  {
+    return false;
+  }
+  gameOver = true;
+  return true;
 }
